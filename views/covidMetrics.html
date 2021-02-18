@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="public/css/covidMetrics.css" rel="stylesheet">
+    <script>
+        $(document).ready(() => {
+            $('#result').mouseover(() => {
+                $('#result').css("background-color", "#6cbdf3");
+            });
+            $('#result').mouseout(() => {
+                $('#result').css("background-color", "lightgray");
+            });
+        });
+
+        $(document).ready(() => {
+            "use strict";
+            $("#myForm").submit((event) => {
+                event.preventDefault();
+                $("#result").html("");
+                //var stName = $('#state option:selected').val();
+                var stName = $('#stateName').val();
+                var urlWithVar = 'https://api.covidtracking.com/v1/states/' + stName + '/current.json';
+                var form_data = $(this).serialize();
+                $.getJSON(urlWithVar, form_data, (response) => {
+                    url: urlWithVar;
+                    method: "GET";
+                    crossDomain: true;
+                    data: form_data;
+                    dataType: "json";
+                    $.each(response, (key, val) => {
+                        console.log(key, val);
+                        if (key === 'positive') {
+                            $('#result').append("<b>Postive Cases Currently: </b>" + response.positive);
+                            $('#result').append("<br/>"); $('#result').append("<br/>");
+                        } else if (key === 'hospitalizedCurrently') {
+                            $('#result').append("<b>Hospitalized currently: </b>" + response.hospitalizedCurrently);
+                            $('#result').append("<br/>"); $('#result').append("<br/>");
+                        } else if (key === 'death') {
+                            $('#result').append("<b>No. of deaths: </b>" + response.death);
+                            $('#result').append("<br/>"); $('#result').append("<br/>");
+                        } else if (key === 'totalTestResults') {
+                            $('#result').append("<b>Total test results: </b>" + response.totalTestResults);
+                            $('#result').append("<br/>"); $('#result').append("<br/>");
+                        }
+
+                    });
+                }).fail(function () { alert('Please enter correct state name!!!'); });
+            });
+        });
+    </script>
+</head>
+
+<body style="background-color:#E2FCE5">
+    <div class="bottomright"><b>No. of visits to this app: </b></div>
+    <div class="counterNumber" id="CounterVisitor"></div>
+    <script>
+        var n = localStorage.getItem('on_load_counter');
+        if (n === null) {
+            n = 0;
+        }
+        n++;
+        localStorage.setItem("on_load_counter", n);
+        nums = n.toString().split('').map(Number);
+        document.getElementById('CounterVisitor').innerHTML = '';
+        for (var i of nums) {
+            document.getElementById('CounterVisitor').innerHTML += '<span class="counter-item" class="bottom-navbar">' + i + '</span>';
+        } 
+    </script>
+    <div class="container">
+        <div class="bottomleft">Was this data helpful?</div>
+        <button class="thumbs" id="wasitHelpful" class="btn"></button>
+    </div>
+    <script>
+        'use strict';
+        const HANDS_UP = '👍';
+        const HANDS_DOWN = '👎';
+        const HELPFUL = 'handsup';
+        const NONHELPFUL = 'handsdown';
+        const DEFAULT_MODE = HELPFUL;
+
+        const btn = document.querySelector('#wasitHelpful');
+
+        init();
+
+        function init() {
+            let storedMode = sessionStorage.getItem('mode');
+            if (!storedMode) {
+                storedMode = DEFAULT_MODE;
+                sessionStorage.setItem('mode', DEFAULT_MODE);
+            }
+            setMode(storedMode);
+        }
+
+        function setMode(mode = DEFAULT_MODE) {
+            if (mode === HELPFUL) {
+                btn.textContent = HANDS_DOWN;
+                document.body.classList.add(HELPFUL);
+            } else if (mode === NONHELPFUL) {
+                btn.textContent = HANDS_UP;
+                document.body.classList.remove(HELPFUL);
+            }
+        }
+
+        btn.addEventListener('click', function () {
+            let mode = sessionStorage.getItem('mode');
+            if (mode) {
+                let newMode = mode == HELPFUL ? NONHELPFUL : HELPFUL;
+                setMode(newMode);
+                sessionStorage.setItem('mode', newMode);
+            }
+        });
+    </script>
+
+    <br /><br /><br />
+
+    <form id="myForm" method='GET'>
+        <div class="container">
+            <div style="text-align: center;font-family: cursive;">
+                <h2>Covid Metrics</h2>
+            </div>
+        </div>
+        <br>
+        <div class="container">
+            <div class="h-100 row align-items-center">
+                <label style="font-family: Verdana, Geneva, Tahoma, sans-serif;" for="stateName">Enter State Name:
+                </label><br />
+                <input type="text" pattern="[A-Za-z]{2}" autofocus required class="form-control" id="stateName"
+                    name="stateName" placeholder="Enter State name.Should be two letter state code"></p>
+                <button type="submit" class="btn btn-success" id="StateName">Submit</button><br /><br /><br />
+            </div>
+        </div>
+
+        <div class="container">
+            <div style="background-color:#9fc9a4;border-radius: 25px;padding: 30px;width: 700px;height: 250px;"
+                class="h-100 row align-items-center">
+                <div id="result"></div>
+            </div>
+        </div>
+    </form>
+</body>
+
+</html>
